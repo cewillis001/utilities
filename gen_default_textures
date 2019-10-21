@@ -1,0 +1,48 @@
+#!/bin/bash
+
+HELP_MESSAGE="Script to generate default texture files based off provided assets.\nRun in directory where files to copy exist.\nTakes a default texture file and a file containing a list of names and copies default to a new file for each name.\nargs: -d <texture to copy, must end in .tex or .dds> -i <file with list of names, one name per line>"
+
+while getopts :hd:i: option
+do
+	case "${option}"
+		in
+		h)
+			printf "$HELP_MESSAGE"
+			exit 0
+			;;
+		d)
+			FILE_TO_COPY=${OPTARG};;
+		i)
+			LIST_OF_NAMES=${OPTARG};;
+		?)
+			printf "$HELP_MESSAGE"
+			exit 1
+			;;
+	esac
+done
+
+echo "$FILE_TO_COPY"
+
+EXTENSION=".$(echo "$FILE_TO_COPY" | cut -f 2 -d '.')"
+echo "$EXTENSION"
+TYPE="$(echo "$FILE_TO_COPY" | cut -f 1 -d '_')"
+echo "$TYPE"
+while read -r line
+do
+	case "$TYPE"
+		in
+		FALLBACK)
+			printf "copying ./%s to ./FALLBACK_NEUTRAL_%s%s\n" "$FILE_TO_COPY" "$line" "$EXTENSION"
+			cp ./"$FILE_TO_COPY" ./FALLBACK_NEUTRAL_"$line""$EXTENSION"
+			;;
+		LEADER)
+			printf "copying ./%s to ./%s_NEUTRAL%s\n" "$FILE_TO_COPY" "$line" "$EXTENSION"
+			cp ./"$FILE_TO_COPY" ./"$line"_NEUTRAL"$EXTENSION"
+			;;
+		?)
+			echo "Did not recognize the name. Expected FALLBACK_ or LEADER_ at the beginning (this script copies felix kitty)";;
+	esac
+
+done < "$LIST_OF_NAMES"
+
+ls
